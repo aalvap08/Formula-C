@@ -1,0 +1,61 @@
+	for(i=0;i<NUMCOCHES;i++){
+		punteroVehiculos = (struct vehiculos*)malloc(sizeof(struct vehiculos)*NUMCOCHES);
+	}
+	/*inicializo los Structs*/
+  	for(i=0;i<NUMBOXES;i++){
+   		punteroTalleres[i].estaTrabajando = 0;
+    		punteroTalleres[i].identificadorBox = i+1;
+    		punteroTalleres[i].deVacaciones = 0;
+    		punteroTalleres[i].vacPendientes=0;
+  	}
+  	for(i=0;i<NUMCOCHES;i++){
+    	punteroVehiculos[i].destrozado=0;
+		punteroVehiculos[i].numeroVehiculo=0;
+		punteroVehiculos[i].marca=0;
+		punteroVehiculos[i].numeroVueltas=0;
+  	}
+	/*inicializo los semaforos*/
+	pthread_mutex_init(&controladorEscritura,NULL);
+	pthread_mutex_init(&controladorEntradaTaller,NULL);
+	pthread_mutex_init(&controladorTaller,NULL);
+	pthread_mutex_init(&salida,NULL);
+	pthread_mutex_init(&controladorJuez,NULL);
+	pthread_cond_init(&informador,NULL);
+	
+	/*lanzo los locales*/
+	for(i=0;i<NUMBOXES;i++){
+		pthread_create(&punteroTalleres[i].caja,NULL,accionesBox,(void*)&punteroTalleres[i].identificadorBox);
+		
+	}
+	/*lanzo juez*/
+	pthread_create(&juez,NULL,accionesJuez,(void*)&i);
+	/*inicializar el archivo, lo creo si no existe y sino lo sobreescribo*/
+	logFile = fopen(logFileName,"w");
+	if(logFile==NULL){
+		char *err=strerror(errno);
+		printf("%s", err);
+		fclose(logFile);
+	}
+	writeLogMessage("","bienvenido a formulaC\n");
+	while(diaDeCarreras==1){
+		pause();
+	}
+	
+}
+
+
+
+
+
+void nuevoCorredor(int a){
+	if(signal(SIGUSR1,nuevoCorredor)==SIG_ERR){
+		exit(-1);
+	}
+	pthread_mutex_lock(&salida);
+	if(numeroCochesCircuito<5){
+		numeroCochesCircuito++;
+		int i;
+		for(i=0;i<5;i++){
+			if(punteroVehiculos[i].numeroVehiculo==0){
+				inicializaVariablesCorredor(i,cont+1,0,0,0);
+				cont++;
